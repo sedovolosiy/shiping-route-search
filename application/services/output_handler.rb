@@ -1,0 +1,23 @@
+# application/services/output_handler.rb
+require_relative '../../infrastructure/utils/json_result_serializer'
+
+class OutputHandler
+  def self.serialize_and_print(routes, rates_map, output_format = 'json')
+    serializer =
+      case output_format
+      when 'json'
+        JsonResultSerializer
+      when 'csv'
+        raise 'CSV output not implemented yet'
+      when 'xml'
+        raise 'XML output not implemented yet'
+      else
+        raise "Unknown output format: #{output_format}"
+      end
+    if routes.empty? || routes.first.nil?
+      puts serializer.serialize([], rates_map)
+    else
+      puts serializer.serialize(routes.first, rates_map)
+    end
+  end
+end

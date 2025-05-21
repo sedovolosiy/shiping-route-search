@@ -25,6 +25,9 @@ class CheapestRouteSearch < RouteSearchStrategy
     result.each do |route_sailings|
       total = route_sailings.sum do |sailing|
         rate = rates_map[sailing.sailing_code]
+        unless rate
+          raise "No rate found for sailing_code: #{sailing.sailing_code.inspect} in route #{route_sailings.map(&:sailing_code).inspect}"
+        end
         converter.convert(rate.amount, rate.currency, target_currency, sailing.departure_date)
       end
       if min_cost.nil? || total < min_cost
