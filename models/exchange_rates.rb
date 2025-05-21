@@ -1,15 +1,13 @@
 class ExchangeRates
-  def initialize(data)
-    @data = data
+  def initialize(rates_by_date)
+    @rates_by_date = rates_by_date
   end
 
-  # amount: float, currency: "USD"|"EUR"|"JPY", date: "YYYY-MM-DD"
-  def to_eur(amount, currency, date)
-    return amount if currency == "EUR"
-    rates = @data[date]
+  def rate(date, currency)
+    rates = @rates_by_date[date]
     raise "No rates for #{date}" unless rates
-    key = currency.downcase
-    raise "No rate for #{currency} on #{date}" unless rates[key]
-    (amount / rates[key]).round(2)
+    rate = rates[currency.downcase]
+    raise "No rate for #{currency} on #{date}" unless rate
+    rate
   end
 end
