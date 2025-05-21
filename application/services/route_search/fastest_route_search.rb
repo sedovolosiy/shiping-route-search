@@ -35,7 +35,6 @@ class FastestRouteSearch < RouteSearchStrategy
       end
     end
 
-    print fastest_routes
     fastest_routes
   end
 end
