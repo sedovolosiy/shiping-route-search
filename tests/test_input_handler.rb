@@ -1,4 +1,4 @@
-require 'minitest/autorun'
+require_relative 'test_helper'
 require_relative '../application/services/input_handler'
 
 class InputHandlerTest < Minitest::Test

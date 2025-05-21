@@ -1,3 +1,4 @@
+require_relative 'test_helper'
 require 'minitest/autorun'
 require_relative '../infrastructure/utils/input_parser'
 

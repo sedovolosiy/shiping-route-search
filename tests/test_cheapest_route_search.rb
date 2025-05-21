@@ -1,4 +1,5 @@
 require 'minitest/autorun'
+require_relative 'test_helper'
 require_relative '../application/services/route_search/cheapest_route_search'
 require_relative '../domain/models/sailing'
 require_relative '../domain/models/rate'

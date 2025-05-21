@@ -1,4 +1,4 @@
-require 'minitest/autorun'
+require_relative 'test_helper'
 require 'json'
 require_relative '../infrastructure/repositories/json_repository'
 require_relative '../domain/models/sailing'

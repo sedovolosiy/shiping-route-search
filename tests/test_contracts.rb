@@ -1,3 +1,4 @@
+require_relative 'test_helper'
 require 'minitest/autorun'
 require_relative '../domain/contracts/route_search_strategy'
 require_relative '../domain/contracts/currency_converter'
