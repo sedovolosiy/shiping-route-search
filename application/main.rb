@@ -2,27 +2,26 @@ require 'json'
 require 'date'
 
 # Models
-require_relative 'models/sailing'
-require_relative 'models/rate'
-require_relative 'models/exchange_rates'
-require_relative 'models/route'
+require_relative '../domain/models/sailing'
+require_relative '../domain/models/rate'
+require_relative '../domain/models/exchange_rates'
 
 # Repository
-require_relative 'repositories/json_repository'
+require_relative '../infrastructure/repositories/json_repository'
 
 # Strategies
-require_relative 'services/direct_route_search'
-require_relative 'services/cheapest_route_search'
-require_relative 'services/fastest_route_search'
+require_relative 'services/route_search/direct_route_search'
+require_relative 'services/route_search/cheapest_route_search'
+require_relative 'services/route_search/fastest_route_search'
 
 # Currency converter
-require_relative 'services/universal_converter'
+require_relative 'services/currency/universal_converter'
 
 # Input Parsers
-require_relative 'utils/stdin_input_parser'
+require_relative '../infrastructure/utils/stdin_input_parser'
 
 # Serializer
-require_relative 'utils/json_result_serializer'
+require_relative '../infrastructure/utils/json_result_serializer'
 
 VALID_CRITERIA = %w[cheapest-direct cheapest fastest]
 
@@ -123,8 +122,7 @@ serializer =
   end
   
 if routes.empty? || routes.first.nil?
-  puts serializer.serialize(Route.new([]), rates_map)
+  puts serializer.serialize([], rates_map)
 else
-  route = Route.new(routes.first)
-  puts serializer.serialize(route, rates_map)
+  puts serializer.serialize(routes.first, rates_map)
 end

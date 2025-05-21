@@ -1,4 +1,4 @@
-require_relative 'currency_converter'
+require_relative '../../../domain/contracts/currency_converter'
 
 class UniversalConverter < CurrencyConverter
   def initialize(exchange_rates, base_currency)

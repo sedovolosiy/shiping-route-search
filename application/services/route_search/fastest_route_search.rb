@@ -1,4 +1,4 @@
-require_relative 'route_search_strategy'
+require_relative '../../../domain/contracts/route_search_strategy'
 require 'date'
 
 class FastestRouteSearch < RouteSearchStrategy

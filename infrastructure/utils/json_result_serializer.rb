@@ -1,8 +1,8 @@
 require_relative 'output_serializer'
 
 class JsonResultSerializer < OutputSerializer
-  def self.serialize(route, rates_map)
-    data = route.sailings.map do |sailing|
+  def self.serialize(sailings, rates_map)
+    data = sailings.map do |sailing|
       rate = rates_map[sailing.sailing_code]
       {
         origin_port: sailing.origin_port,

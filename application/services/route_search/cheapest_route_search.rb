@@ -1,7 +1,7 @@
-require_relative 'route_search_strategy'
+require_relative '../../../domain/contracts/route_search_strategy'
 
 class CheapestRouteSearch < RouteSearchStrategy
-  def find_routes(sailings, origin, destination, rates_map, exchange_rates, max_legs: 4)
+  def find_routes(sailings, origin, destination, rates_map, converter, target_currency, max_legs: 4)
     by_origin = sailings.group_by(&:origin_port)
     result = []
     queue = [[origin, []]]
@@ -25,7 +25,7 @@ class CheapestRouteSearch < RouteSearchStrategy
     result.each do |route_sailings|
       total = route_sailings.sum do |sailing|
         rate = rates_map[sailing.sailing_code]
-        exchange_rates.to_eur(rate.amount, rate.currency, sailing.departure_date)
+        converter.convert(rate.amount, rate.currency, target_currency, sailing.departure_date)
       end
       if min_cost.nil? || total < min_cost
         min_cost = total

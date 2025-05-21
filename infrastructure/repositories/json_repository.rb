@@ -1,7 +1,7 @@
 require 'json'
-require_relative '../models/sailing'
-require_relative '../models/rate'
-require_relative '../models/exchange_rates'
+require_relative '../../domain/models/sailing'
+require_relative '../../domain/models/rate'
+require_relative '../../domain/models/exchange_rates'
 
 class JsonRepository
   attr_reader :sailings, :rates, :exchange_rates

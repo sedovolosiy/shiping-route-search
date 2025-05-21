@@ -1,4 +1,4 @@
-require_relative 'route_search_strategy'
+require_relative '../../../domain/contracts/route_search_strategy'
 
 class DirectRouteSearch < RouteSearchStrategy
   def find_routes(sailings, origin, destination)
