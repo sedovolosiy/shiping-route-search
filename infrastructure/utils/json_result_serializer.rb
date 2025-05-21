@@ -1,3 +1,4 @@
+require 'json'
 require_relative 'output_serializer'
 
 class JsonResultSerializer < OutputSerializer
