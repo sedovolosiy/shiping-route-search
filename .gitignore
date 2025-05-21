@@ -1,0 +1,57 @@
+# Ignore bundler config
+/.bundle
+
+# Ignore installed gems
+/vendor/bundle
+
+# Ignore log, temp, and cache files
+/log/
+/tmp/
+*.log
+*.tmp
+*.pid
+*.swp
+
+# Ignore coverage reports
+/coverage/
+
+# Ignore byebug history
+.byebug_history
+
+# Ignore RubyMine project files
+.idea/
+
+# Ignore VS Code settings
+.vscode/
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore test output
+/test/tmp/
+
+# Ignore node modules (if any)
+/node_modules/
+
+# Ignore dotenv files
+.env
+.env.*
+
+# Ignore gemspec lock
+*.gemlock
+
+# Ignore compiled Ruby files
+*.rbc
+
+# Ignore IRB history
+.irb-history
+
+# Ignore pry history
+.pry_history
+
+# Ignore coverage artifacts
+/.simplecov
+
+# Ignore Ruby LSP cache
+.ruby-lsp/

@@ -1,9 +1,10 @@
-FROM ruby:3.4.3
+FROM ruby:3.4.3-slim
 
 WORKDIR /app
 
-COPY . /app
+COPY Gemfile Gemfile.lock ./
+RUN gem install bundler && bundle install
 
-RUN gem install bundler && bundle install || true
+COPY . .
 
-CMD ["ruby", "main.rb"]
+CMD ["ruby", "application/main.rb"]
