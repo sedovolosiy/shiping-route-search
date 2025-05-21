@@ -1,6 +1,8 @@
-class ResultSerializer
-  def self.as_json(route, rates_map)
-    route.sailings.map do |sailing|
+require_relative 'output_serializer'
+
+class JsonResultSerializer < OutputSerializer
+  def self.serialize(route, rates_map)
+    data = route.sailings.map do |sailing|
       rate = rates_map[sailing.sailing_code]
       {
         origin_port: sailing.origin_port,
@@ -12,5 +14,6 @@ class ResultSerializer
         rate_currency: rate.currency
       }
     end
+    JSON.pretty_generate(data)
   end
 end

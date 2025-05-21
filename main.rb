@@ -18,14 +18,30 @@ require_relative 'services/fastest_route_search'
 # Currency converter
 require_relative 'services/universal_converter'
 
+# Input Parsers
+require_relative 'utils/stdin_input_parser'
+
 # Serializer
-require_relative 'utils/result_serializer'
+require_relative 'utils/json_result_serializer'
 
 VALID_CRITERIA = %w[cheapest-direct cheapest fastest]
 
-origin = STDIN.gets&.strip
-destination = STDIN.gets&.strip
-criteria = STDIN.gets&.strip
+input_type = ENV['INPUT_TYPE'] || 'stdin'
+input_parser =
+  case input_type
+  when 'stdin'
+    StdinInputParser
+  when 'file'
+    raise "File input not implemented yet"
+  when 'api'
+    raise "API input not implemented yet"
+  when 'url'
+    raise "URL input not implemented yet"
+  else
+    raise "Unknown input type: #{input_type}"
+  end
+
+origin, destination, criteria = input_parser.parse
 
 missing = []
 missing << "origin" if origin.nil? || origin.empty?
@@ -93,9 +109,22 @@ routes =
     []
   end
 
+output_format = ENV['OUTPUT_FORMAT'] || 'json'
+serializer =
+  case output_format
+  when 'json'
+    JsonResultSerializer
+  when 'csv'
+    raise "CSV output not implemented yet"
+  when 'xml'
+    raise "XML output not implemented yet"
+  else
+    raise "Unknown output format: #{output_format}"
+  end
+  
 if routes.empty? || routes.first.nil?
-  puts "[]"
+  puts serializer.serialize(Route.new([]), rates_map)
 else
   route = Route.new(routes.first)
-  puts JSON.pretty_generate(ResultSerializer.as_json(route, rates_map))
+  puts serializer.serialize(route, rates_map)
 end
