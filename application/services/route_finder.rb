@@ -1,5 +1,6 @@
 require 'date'
 require_relative 'best_route_picker'
+require 'logger'
 
 class RouteFinder
   def initialize(repo, converter, base_currency)
@@ -9,6 +10,7 @@ class RouteFinder
     @rates_map = repo.rates.map { |r| [r.sailing_code, r] }.to_h
     # Initialize BestRoutePicker here
     @best_route_picker = BestRoutePicker.new(@rates_map, @converter, @base_currency)
+    @logger = Logger.new(STDERR) # Initialize logger
   end
 
   def find(input, strategy)
@@ -28,7 +30,7 @@ class RouteFinder
                  when 'cheapest-direct', 'fastest', 'cheapest'
                    strategy.find_routes(@repo.sailings, origin, destination, options)
                  else
-                   STDERR.puts "WARN: Unknown criteria '#{criteria}' received. Returning empty results."
+                   @logger.warn("Unknown criteria '#{criteria}' received. Returning empty results.")
                    [] # Handle unknown criteria or unsupported strategy
                  end
 

@@ -1,5 +1,10 @@
 module GraphTraversal
   def find_all_paths(sailings, origin, destination, max_legs)
+    # Validate max_legs
+    if max_legs <= 0
+      raise ArgumentError, "max_legs must be greater than 0"
+    end
+
     by_origin = sailings.group_by(&:origin_port)
     result = []
     queue = [[origin, []]] # Each element is [current_port, path_so_far]

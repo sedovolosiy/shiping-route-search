@@ -97,6 +97,18 @@ class TestGraphTraversal < Minitest::Test
     assert_empty paths
   end
 
+  def test_find_all_paths_with_max_legs_zero
+    assert_raises(ArgumentError, "max_legs must be greater than 0") do
+      find_all_paths(@sailings, 'CNSHA', 'JPTKO', 0)
+    end
+  end
+
+  def test_find_all_paths_with_max_legs_negative
+    assert_raises(ArgumentError, "max_legs must be greater than 0") do
+      find_all_paths(@sailings, 'CNSHA', 'JPTKO', -1)
+    end
+  end
+
   def test_find_all_paths_start_equals_destination_no_sailings
     # If origin and destination are the same, and no sailings, should be empty.
     paths = find_all_paths([], 'CNSHA', 'CNSHA', 2)

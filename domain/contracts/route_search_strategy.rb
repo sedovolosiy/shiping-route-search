@@ -1,4 +1,15 @@
 class RouteSearchStrategy
+  # Finds routes based on the provided sailings, origin, destination, and options.
+  #
+  # @param sailings [Array<Sailing>] A list of available sailings.
+  # @param origin [String] The origin port code.
+  # @param destination [String] The destination port code.
+  # @param options [Hash] A hash of options to customize the search.
+  #   Expected keys might include:
+  #   - :rates_map [Hash] A map of sailing codes to their rates.
+  #   - :converter [CurrencyConverter] An instance of a currency converter.
+  #   - :target_currency [String] The currency to which prices should be converted.
+  #   - :max_legs [Integer] The maximum number of legs for a route.
   def find_routes(sailings, origin, destination, options = {})
     raise NotImplementedError
   end
