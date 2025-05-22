@@ -1,6 +1,5 @@
-require_relative 'test_helper'
-require 'minitest/autorun'
-require_relative '../domain/models/rate'
+require_relative '../../../test_helper'
+require_relative '../../../domain/models/rate'
 
 class RateTest < Minitest::Test
   def test_initialization

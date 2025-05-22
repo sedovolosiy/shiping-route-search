@@ -1,9 +1,8 @@
-require_relative 'test_helper'
-require 'json'
-require_relative '../infrastructure/repositories/json_repository'
-require_relative '../domain/models/sailing'
-require_relative '../domain/models/rate'
-require_relative '../domain/models/exchange_rates'
+require_relative '../../../test_helper'
+require_relative '../../../infrastructure/repositories/json_repository'
+require_relative '../../../domain/models/sailing'
+require_relative '../../../domain/models/rate'
+require_relative '../../../domain/models/exchange_rates'
 
 class JsonRepositoryTest < Minitest::Test
   def setup

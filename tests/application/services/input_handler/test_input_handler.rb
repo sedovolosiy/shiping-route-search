@@ -1,5 +1,5 @@
-require_relative 'test_helper'
-require_relative '../application/services/input_handler'
+require_relative '../../../../test_helper'
+require_relative '../../../../application/services/input_handler'
 
 class InputHandlerTest < Minitest::Test
   def test_valid_parse_stdin

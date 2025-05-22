@@ -1,10 +1,9 @@
-require 'minitest/autorun'
-require_relative 'test_helper'
-require_relative '../application/services/route_search/cheapest_route_search'
-require_relative '../domain/models/sailing'
-require_relative '../domain/models/rate'
-require_relative '../application/services/currency/universal_converter'
-require_relative '../domain/models/exchange_rates'
+require_relative '../../../../test_helper'
+require_relative '../../../../application/services/route_search/cheapest_route_search'
+require_relative '../../../../domain/models/sailing'
+require_relative '../../../../domain/models/rate'
+require_relative '../../../../application/services/currency/universal_converter'
+require_relative '../../../../domain/models/exchange_rates'
 
 class CheapestRouteSearchTest < Minitest::Test
   def setup
@@ -27,7 +26,6 @@ class CheapestRouteSearchTest < Minitest::Test
   def test_find_cheapest_route
     routes = @strategy.find_routes(@sailings, "A", "C", @rates_map, @converter, 'EUR', max_legs: 3)
     assert_equal 1, routes.size
-    # Should pick S1 + S2 (100+50=150) over S3 (200)
     codes = routes.first.map(&:sailing_code)
     assert_equal ["S1", "S2"], codes
   end
@@ -54,19 +52,12 @@ class CheapestRouteSearchTest < Minitest::Test
     routes = strategy.find_routes(sailings, "CNSHA", "NLRTM", rates_map, converter, 'EUR', max_legs: 1)
     assert_equal 1, routes.size
     codes = routes.first.map(&:sailing_code)
-    # Check that the cheapest route is selected after conversion to EUR
-    # EUR: QRST = 761.96
-    # USD: ABCD = 589.30 / 1.126 = 523.47
-    # JPY: IJKL = 97453 / 131.2 = 743.01
-    # The cheapest: ABCD (USD)
     assert_equal ["ABCD"], codes
   end
 
   def test_cheapest_route_with_two_legs_cheaper_than_direct
     sailings = [
-      # Direct route (expensive)
       Sailing.new({"origin_port"=>"A", "destination_port"=>"C", "departure_date"=>"2022-01-01", "arrival_date"=>"2022-01-04", "sailing_code"=>"S3"}),
-      # Indirect route (cheaper in sum)
       Sailing.new({"origin_port"=>"A", "destination_port"=>"B", "departure_date"=>"2022-01-01", "arrival_date"=>"2022-01-02", "sailing_code"=>"S1"}),
       Sailing.new({"origin_port"=>"B", "destination_port"=>"C", "departure_date"=>"2022-01-03", "arrival_date"=>"2022-01-04", "sailing_code"=>"S2"})
     ]
@@ -82,7 +73,6 @@ class CheapestRouteSearchTest < Minitest::Test
     routes = strategy.find_routes(sailings, "A", "C", rates_map, converter, 'EUR', max_legs: 3)
     assert_equal 1, routes.size
     codes = routes.first.map(&:sailing_code)
-    # Should pick S1 + S2 (100+50=150) over S3 (200)
     assert_equal ["S1", "S2"], codes
   end
 end

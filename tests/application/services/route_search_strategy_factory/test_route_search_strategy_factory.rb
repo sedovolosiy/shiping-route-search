@@ -1,6 +1,6 @@
-require_relative 'test_helper'
-require 'minitest/autorun'
-require_relative '../application/services/route_search_strategy_factory'
+require_relative '../../../../test_helper'
+require_relative '../../../../application/services/route_search_strategy_factory'
+require_relative '../../../../domain/models/sailing' # Исправленный путь к sailing.rb
 
 class RouteSearchStrategyFactoryTest < Minitest::Test
   def test_build_cheapest_direct

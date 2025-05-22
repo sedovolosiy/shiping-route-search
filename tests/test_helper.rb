@@ -1,5 +1,2 @@
-require 'simplecov'
-SimpleCov.start do
-  add_filter '/tests/'
-  track_files 'application/**/*.rb'
-end
+# Just require the main test helper
+require_relative '../test_helper'

@@ -1,7 +1,6 @@
-require 'minitest/autorun'
-require_relative 'test_helper'
-require_relative '../application/services/route_search/fastest_route_search'
-require_relative '../domain/models/sailing'
+require_relative '../../../../test_helper'
+require_relative '../../../../application/services/route_search/fastest_route_search'
+require_relative '../../../../domain/models/sailing'
 
 class FastestRouteSearchTest < Minitest::Test
   def setup
@@ -16,15 +15,14 @@ class FastestRouteSearchTest < Minitest::Test
     ]
     routes = @strategy.find_routes(sailings, "A", "C", max_legs: 3)
     assert_equal 1, routes.size
-    # Should pick S3 (duration 2 days) over S1+S2 (duration 3 days)
     codes = routes.first.map(&:sailing_code)
     assert_equal ["S3"], codes
   end
 
   def test_multiple_fastest_routes
     sailings = [
-      Sailing.new({"origin_port"=>"A", "destination_port"=>"D", "departure_date"=>"2022-01-01", "arrival_date"=>"2022-01-03", "sailing_code"=>"S1"}), # 2 дня
-      Sailing.new({"origin_port"=>"D", "destination_port"=>"B", "departure_date"=>"2022-01-02", "arrival_date"=>"2022-01-05", "sailing_code"=>"S2"})  # 3 дня
+      Sailing.new({"origin_port"=>"A", "destination_port"=>"D", "departure_date"=>"2022-01-01", "arrival_date"=>"2022-01-03", "sailing_code"=>"S1"}),
+      Sailing.new({"origin_port"=>"D", "destination_port"=>"B", "departure_date"=>"2022-01-02", "arrival_date"=>"2022-01-05", "sailing_code"=>"S2"})
     ]
     routes = @strategy.find_routes(sailings, "A", "B", max_legs: 4)
     assert_equal 1, routes.size
@@ -34,13 +32,10 @@ class FastestRouteSearchTest < Minitest::Test
 
   def test_fastest_route_with_multiple_legs_and_multiple_results
     sailings = [
-      # First A -> B -> C (2 + 2 = 4 days)
       Sailing.new({"origin_port"=>"A", "destination_port"=>"B", "departure_date"=>"2022-01-01", "arrival_date"=>"2022-01-03", "sailing_code"=>"S1"}),
       Sailing.new({"origin_port"=>"B", "destination_port"=>"C", "departure_date"=>"2022-01-03", "arrival_date"=>"2022-01-05", "sailing_code"=>"S2"}),
-      # Second fastest route: A -> D -> C (2 + 2 = 4 days)
       Sailing.new({"origin_port"=>"A", "destination_port"=>"D", "departure_date"=>"2022-01-01", "arrival_date"=>"2022-01-03", "sailing_code"=>"S3"}),
       Sailing.new({"origin_port"=>"D", "destination_port"=>"C", "departure_date"=>"2022-01-03", "arrival_date"=>"2022-01-05", "sailing_code"=>"S4"}),
-      # Slower route: A -> C (5 days)
       Sailing.new({"origin_port"=>"A", "destination_port"=>"C", "departure_date"=>"2022-01-01", "arrival_date"=>"2022-01-06", "sailing_code"=>"S5"})
     ]
     routes = @strategy.find_routes(sailings, "A", "C", max_legs: 3)

@@ -1,6 +1,5 @@
-require_relative 'test_helper'
-require 'minitest/autorun'
-require_relative '../domain/models/sailing'
+require_relative '../../../test_helper'
+require_relative '../../../domain/models/sailing'
 
 class SailingTest < Minitest::Test
   def test_initialization

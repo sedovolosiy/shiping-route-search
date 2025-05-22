@@ -1,6 +1,7 @@
-require_relative 'test_helper'
-require_relative '../application/services/currency/universal_converter'
-require_relative '../domain/models/exchange_rates'
+require_relative '../../../../test_helper'
+require 'minitest/autorun'
+require_relative '../../../../application/services/currency/universal_converter'
+require_relative '../../../../domain/models/exchange_rates'
 
 class UniversalConverterTest < Minitest::Test
   def setup

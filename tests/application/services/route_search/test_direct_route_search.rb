@@ -1,7 +1,6 @@
-require 'minitest/autorun'
-require_relative 'test_helper'
-require_relative '../application/services/route_search/direct_route_search'
-require_relative '../domain/models/sailing'
+require_relative '../../../../test_helper'
+require_relative '../../../../application/services/route_search/direct_route_search'
+require_relative '../../../../domain/models/sailing'
 
 class DirectRouteSearchTest < Minitest::Test
   def setup

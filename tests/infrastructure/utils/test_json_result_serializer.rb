@@ -1,14 +1,7 @@
-require_relative 'test_helper'
-require 'simplecov'
-SimpleCov.start do
-  add_filter '/tests/'
-  track_files 'application/**/*.rb'
-end
-
-require 'minitest/autorun'
-require_relative '../infrastructure/utils/json_result_serializer'
-require_relative '../domain/models/sailing'
-require_relative '../domain/models/rate'
+require_relative '../../../test_helper'
+require_relative '../../../infrastructure/utils/json_result_serializer'
+require_relative '../../../domain/models/sailing'
+require_relative '../../../domain/models/rate'
 
 class JsonResultSerializerTest < Minitest::Test
   def test_serialize

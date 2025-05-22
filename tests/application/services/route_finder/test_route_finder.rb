@@ -1,9 +1,9 @@
-require_relative 'test_helper'
-require_relative '../application/services/route_finder'
-require_relative '../domain/models/sailing'
-require_relative '../domain/models/rate'
-require_relative '../domain/models/exchange_rates'
-require_relative '../application/services/currency/universal_converter'
+require_relative '../../../../test_helper'
+require_relative '../../../../application/services/route_finder'
+require_relative '../../../../domain/models/sailing'
+require_relative '../../../../domain/models/rate'
+require_relative '../../../../domain/models/exchange_rates'
+require_relative '../../../../application/services/currency/universal_converter'
 
 class DummyStrategy
   def find_routes(*args)
