@@ -34,11 +34,75 @@ class JsonRepositoryTest < Minitest::Test
 
   def test_invalid_json
     File.write(@json_path, '[]')
-    assert_raises(RuntimeError) { JsonRepository.new(@json_path) }
+    error = assert_raises(RuntimeError) { JsonRepository.new(@json_path) }
+    assert_equal "Input data must be a JSON object (Hash)", error.message
   end
 
   def test_missing_keys
     File.write(@json_path, JSON.dump({}))
-    assert_raises(RuntimeError) { JsonRepository.new(@json_path) }
+    error = assert_raises(RuntimeError) { JsonRepository.new(@json_path) }
+    assert_match(/Missing key:/, error.message)
+  end
+
+  def test_invalid_sailings_type
+    @data['sailings'] = {}
+    File.write(@json_path, JSON.dump(@data))
+    error = assert_raises(RuntimeError) { JsonRepository.new(@json_path) }
+    assert_equal 'sailings must be an array', error.message
+  end
+
+  def test_invalid_rates_type
+    @data['rates'] = 'not an array'
+    File.write(@json_path, JSON.dump(@data))
+    error = assert_raises(RuntimeError) { JsonRepository.new(@json_path) }
+    assert_equal 'rates must be an array', error.message
+  end
+
+  def test_invalid_exchange_rates_type
+    @data['exchange_rates'] = []
+    File.write(@json_path, JSON.dump(@data))
+    error = assert_raises(RuntimeError) { JsonRepository.new(@json_path) }
+    assert_equal 'exchange_rates must be a hash', error.message
+  end
+
+  def test_invalid_exchange_rates_inner_type
+    @data['exchange_rates'] = { '2022-01-01' => [] }
+    File.write(@json_path, JSON.dump(@data))
+    error = assert_raises(RuntimeError) { JsonRepository.new(@json_path) }
+    assert_equal 'exchange_rates for 2022-01-01 must be a hash', error.message
+  end
+
+  def test_missing_sailing_keys
+    %w[origin_port destination_port departure_date arrival_date sailing_code].each do |key|
+      invalid_data = @data.dup
+      invalid_data['sailings'] = [invalid_data['sailings'].first.reject { |k, _| k == key }]
+      File.write(@json_path, JSON.dump(invalid_data))
+      error = assert_raises(RuntimeError) { JsonRepository.new(@json_path) }
+      assert_match(/Sailing\[0\] missing key: #{key}/, error.message)
+    end
+  end
+
+  def test_missing_rate_keys
+    %w[sailing_code rate rate_currency].each do |key|
+      invalid_data = @data.dup
+      invalid_data['rates'] = [invalid_data['rates'].first.reject { |k, _| k == key }]
+      File.write(@json_path, JSON.dump(invalid_data))
+      error = assert_raises(RuntimeError) { JsonRepository.new(@json_path) }
+      assert_match(/Rate\[0\] missing key: #{key}/, error.message)
+    end
+  end
+
+  def test_multiple_valid_entries
+    @data['sailings'] << @data['sailings'].first.merge('sailing_code' => 'S2')
+    @data['rates'] << @data['rates'].first.merge('sailing_code' => 'S2')
+    @data['exchange_rates']['2022-01-02'] = { 'usd' => 1.3 }
+    File.write(@json_path, JSON.dump(@data))
+    
+    repo = JsonRepository.new(@json_path)
+    assert_equal 2, repo.sailings.size
+    assert_equal 2, repo.rates.size
+    # Verify exchange rates data through the rate method
+    assert_equal 1.2, repo.exchange_rates.rate('2022-01-01', 'USD')
+    assert_equal 1.3, repo.exchange_rates.rate('2022-01-02', 'USD')
   end
 end
