@@ -24,7 +24,7 @@ class CheapestRouteSearchTest < Minitest::Test
   end
 
   def test_find_cheapest_route
-    routes = @strategy.find_routes(@sailings, "A", "C", @rates_map, @converter, 'EUR', max_legs: 3)
+    routes = @strategy.find_routes(@sailings, "A", "C", { rates_map: @rates_map, converter: @converter, target_currency: 'EUR', max_legs: 3 })
     assert_equal 1, routes.size
     codes = routes.first.map(&:sailing_code)
     assert_equal ["S1", "S2"], codes
@@ -49,7 +49,7 @@ class CheapestRouteSearchTest < Minitest::Test
     })
     converter = UniversalConverter.new(exchange_rates, 'EUR')
     strategy = CheapestRouteSearch.new
-    routes = strategy.find_routes(sailings, "CNSHA", "NLRTM", rates_map, converter, 'EUR', max_legs: 1)
+    routes = strategy.find_routes(sailings, "CNSHA", "NLRTM", { rates_map: rates_map, converter: converter, target_currency: 'EUR', max_legs: 1 })
     assert_equal 1, routes.size
     codes = routes.first.map(&:sailing_code)
     assert_equal ["ABCD"], codes
@@ -70,7 +70,7 @@ class CheapestRouteSearchTest < Minitest::Test
     exchange_rates = ExchangeRates.new({"2022-01-01"=>{"eur"=>1.0}, "2022-01-03"=>{"eur"=>1.0}})
     converter = UniversalConverter.new(exchange_rates, 'EUR')
     strategy = CheapestRouteSearch.new
-    routes = strategy.find_routes(sailings, "A", "C", rates_map, converter, 'EUR', max_legs: 3)
+    routes = strategy.find_routes(sailings, "A", "C", { rates_map: rates_map, converter: converter, target_currency: 'EUR', max_legs: 3 })
     assert_equal 1, routes.size
     codes = routes.first.map(&:sailing_code)
     assert_equal ["S1", "S2"], codes
@@ -82,7 +82,7 @@ class CheapestRouteSearchTest < Minitest::Test
       Sailing.new({"origin_port"=>"A", "destination_port"=>"B", "departure_date"=>"2022-01-01", "arrival_date"=>"2022-01-02", "sailing_code"=>"S1"}),
       Sailing.new({"origin_port"=>"B", "destination_port"=>"D", "departure_date"=>"2022-01-03", "arrival_date"=>"2022-01-04", "sailing_code"=>"S2"})
     ]
-    routes = @strategy.find_routes(sailings, "A", "C", @rates_map, @converter, 'EUR', max_legs: 3)
+    routes = @strategy.find_routes(sailings, "A", "C", { rates_map: @rates_map, converter: @converter, target_currency: 'EUR', max_legs: 3 })
     assert_empty routes
   end
 
@@ -98,7 +98,7 @@ class CheapestRouteSearchTest < Minitest::Test
     ]
     rates_map = rates.map { |r| [r.sailing_code, r] }.to_h
     
-    routes = @strategy.find_routes(sailings, "A", "C", rates_map, @converter, 'EUR', max_legs: 1)
+    routes = @strategy.find_routes(sailings, "A", "C", { rates_map: rates_map, converter: @converter, target_currency: 'EUR', max_legs: 1 })
     assert_equal 2, routes.size
     assert_includes routes.map { |r| r.first.sailing_code }, "S1"
     assert_includes routes.map { |r| r.first.sailing_code }, "S2"
@@ -111,7 +111,7 @@ class CheapestRouteSearchTest < Minitest::Test
     rates_map = {} # Empty rates map
     
     error = assert_raises(RuntimeError) do
-      @strategy.find_routes(sailings, "A", "C", rates_map, @converter, 'EUR', max_legs: 1)
+      @strategy.find_routes(sailings, "A", "C", { rates_map: rates_map, converter: @converter, target_currency: 'EUR', max_legs: 1 })
     end
     assert_match(/No rate found for sailing_code/, error.message)
   end
@@ -133,11 +133,11 @@ class CheapestRouteSearchTest < Minitest::Test
     rates_map = rates.map { |r| [r.sailing_code, r] }.to_h
     
     # Test with max_legs: 2
-    routes = @strategy.find_routes(sailings, "A", "E", rates_map, @converter, 'EUR', max_legs: 2)
+    routes = @strategy.find_routes(sailings, "A", "E", { rates_map: rates_map, converter: @converter, target_currency: 'EUR', max_legs: 2 })
     assert_empty routes # Should find no routes as minimum path requires 4 legs
 
     # Test with max_legs: 4
-    routes = @strategy.find_routes(sailings, "A", "E", rates_map, @converter, 'EUR', max_legs: 4)
+    routes = @strategy.find_routes(sailings, "A", "E", { rates_map: rates_map, converter: @converter, target_currency: 'EUR', max_legs: 4 })
     assert_equal 1, routes.size
     assert_equal ["S1", "S2", "S3", "S4"], routes.first.map(&:sailing_code)
   end
@@ -156,7 +156,7 @@ class CheapestRouteSearchTest < Minitest::Test
     ]
     rates_map = rates.map { |r| [r.sailing_code, r] }.to_h
     
-    routes = @strategy.find_routes(sailings, "A", "C", rates_map, @converter, 'EUR', max_legs: 4)
+    routes = @strategy.find_routes(sailings, "A", "C", { rates_map: rates_map, converter: @converter, target_currency: 'EUR', max_legs: 4 })
     assert_equal 1, routes.size
     route = routes.first.map(&:sailing_code)
     assert_equal ["S1", "S3"], route

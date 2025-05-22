@@ -5,7 +5,8 @@ require 'date'
 class FastestRouteSearch < RouteSearchStrategy
   include GraphTraversal
 
-  def find_routes(sailings, origin, destination, max_legs: 4)
+  def find_routes(sailings, origin, destination, options = {})
+    max_legs = options.fetch(:max_legs, 4)
     all_paths = find_all_paths(sailings, origin, destination, max_legs)
 
     min_duration = nil

@@ -4,7 +4,12 @@ require_relative './graph_traversal'
 class CheapestRouteSearch < RouteSearchStrategy
   include GraphTraversal
 
-  def find_routes(sailings, origin, destination, rates_map, converter, target_currency, max_legs: 4)
+  def find_routes(sailings, origin, destination, options = {})
+    rates_map = options[:rates_map]
+    converter = options[:converter]
+    target_currency = options[:target_currency]
+    max_legs = options.fetch(:max_legs, 4)
+
     all_paths = find_all_paths(sailings, origin, destination, max_legs)
 
     min_cost = nil
