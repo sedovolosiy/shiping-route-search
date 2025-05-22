@@ -5,7 +5,11 @@ Rake::TestTask.new(:test) do |t|
   t.libs << '.'
   t.warning = false
   t.verbose = true
-  t.pattern = 'tests/**/**/test_*.rb'
+  # Include both patterns to ensure all tests are run
+  t.pattern = [
+    'tests/**/test_*.rb', 
+    'tests/test_*.rb'
+  ]
 end
 
 desc "Run tests with coverage and open the report"
