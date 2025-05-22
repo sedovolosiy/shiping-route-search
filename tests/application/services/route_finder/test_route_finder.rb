@@ -11,6 +11,12 @@ class DummyStrategy
   end
 end
 
+class EmptyStrategy
+  def find_routes(*args)
+    []
+  end
+end
+
 class RouteFinderTest < Minitest::Test
   def setup
     @repo = Minitest::Mock.new
@@ -46,6 +52,27 @@ class RouteFinderTest < Minitest::Test
   def test_find_unknown
     input = {origin: 'A', destination: 'B', criteria: 'unknown'}
     strategy = DummyStrategy.new
+    result = @finder.find(input, strategy)
+    assert_equal [], result
+  end
+
+  def test_find_cheapest_direct_no_route
+    input = {origin: 'A', destination: 'B', criteria: 'cheapest-direct'}
+    strategy = EmptyStrategy.new
+    result = @finder.find(input, strategy)
+    assert_equal [], result
+  end
+
+  def test_find_cheapest_no_route
+    input = {origin: 'A', destination: 'B', criteria: 'cheapest'}
+    strategy = EmptyStrategy.new
+    result = @finder.find(input, strategy)
+    assert_equal [], result
+  end
+
+  def test_find_fastest_no_route
+    input = {origin: 'A', destination: 'B', criteria: 'fastest'}
+    strategy = EmptyStrategy.new
     result = @finder.find(input, strategy)
     assert_equal [], result
   end

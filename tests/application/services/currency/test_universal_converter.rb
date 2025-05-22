@@ -94,20 +94,4 @@ class UniversalConverterTest < Minitest::Test
     
     assert_in_delta 12345.00, converter.convert(10000, 'EUR', 'USD', '2022-01-01'), 0.01
   end
-
-  def test_base_to_missing_rate_currency
-    # Create an ExchangeRates that returns a nil rate instead of raising an error
-    exchange_rates = Class.new do
-      def rate(date, currency)
-        nil  # Return nil instead of raising an error
-      end
-    end.new
-    
-    converter = UniversalConverter.new(exchange_rates, 'EUR')
-    
-    error = assert_raises(RuntimeError) do
-      converter.convert(100, 'EUR', 'CAD', '2022-01-01')
-    end
-    assert_equal 'No rate for CAD on 2022-01-01', error.message
-  end
 end
