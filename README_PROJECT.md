@@ -64,11 +64,14 @@ Default is JSON. You can change it via the `OUTPUT_FORMAT` environment variable 
 ### 4. Run Tests
 
 ```bash
-ruby -Itests tests/test_fastest_route_search.rb
-# or
-ruby -Itests tests/test_cheapest_route_search.rb
-# etc.
+# Run all tests
+rake test
+
+# Run tests with coverage report
+rake coverage
 ```
+
+The coverage report will be generated in the `coverage/` directory and will automatically open in your browser when using the `rake coverage` command.
 
 ### 5. Run with Docker
 
