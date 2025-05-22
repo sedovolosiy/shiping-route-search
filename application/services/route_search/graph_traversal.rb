@@ -8,7 +8,7 @@ module GraphTraversal
       current_port, path = queue.shift
 
       # Stop exploring this path if it's already too long
-      break if path.size >= max_legs
+      next if path.size >= max_legs
 
       by_origin[current_port]&.each do |sailing|
         # Avoid visiting the same intermediate port twice.
