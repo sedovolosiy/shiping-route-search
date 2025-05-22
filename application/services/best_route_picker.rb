@@ -12,22 +12,21 @@ class BestRoutePicker
 
     case criteria
     when 'cheapest-direct'
-      # For cheapest-direct, the strategy already provides direct routes.
-      # We need to find the one with the minimum total cost.
       best_route = routes.min_by do |sailings|
         calculate_total_cost(sailings)
       end
-      best_route ? [best_route] : []
+      # Ensure the best_route found is actually valid (not infinite cost)
+      return [] if best_route.nil? || calculate_total_cost(best_route) == Float::INFINITY
+      [best_route]
     when 'cheapest'
-      # Assuming the strategy for 'cheapest' already returns routes sorted by price
-      # or only the cheapest ones. WRT-0002 implies returning only one.
       [routes.first] # Or, if strategy returns multiple equally cheap, apply more logic here.
     when 'fastest'
-      # For fastest, we need to find the one with the minimum duration.
       best_route = routes.min_by do |sailings|
         calculate_duration(sailings)
       end
-      best_route ? [best_route] : []
+      # Ensure the best_route found is actually valid (not infinite duration)
+      return [] if best_route.nil? || calculate_duration(best_route) == Float::INFINITY
+      [best_route]
     else
       [] # Or handle unknown criteria as an error
     end
