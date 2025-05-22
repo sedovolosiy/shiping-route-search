@@ -25,11 +25,7 @@ class RouteFinder
     }
 
     all_routes = case criteria
-                 when 'cheapest-direct', 'fastest'
-                   # These strategies might not need extra options beyond origin, destination
-                   strategy.find_routes(@repo.sailings, origin, destination)
-                 when 'cheapest'
-                   # Cheapest strategy requires more context
+                 when 'cheapest-direct', 'fastest', 'cheapest'
                    strategy.find_routes(@repo.sailings, origin, destination, options)
                  else
                    [] # Handle unknown criteria or unsupported strategy
