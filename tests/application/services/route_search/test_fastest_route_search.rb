@@ -44,4 +44,13 @@ class FastestRouteSearchTest < Minitest::Test
     assert_includes codes, ["S1", "S2"]
     assert_includes codes, ["S3", "S4"]
   end
+
+  def test_find_routes_with_invalid_date
+    sailings = [
+      Sailing.new({"origin_port"=>"A", "destination_port"=>"B", "departure_date"=>nil, "arrival_date"=>"2022-01-02", "sailing_code"=>"S1"}),
+      Sailing.new({"origin_port"=>"B", "destination_port"=>"C", "departure_date"=>"2022-01-03", "arrival_date"=>"2022-01-04", "sailing_code"=>"S2"})
+    ]
+    routes = @strategy.find_routes(sailings, "A", "C", max_legs: 3)
+    assert_empty routes
+  end
 end

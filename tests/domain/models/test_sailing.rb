@@ -16,4 +16,15 @@ class SailingTest < Minitest::Test
     assert_equal "2022-01-15", s.arrival_date
     assert_equal "ABC1", s.sailing_code
   end
+
+  def test_duration
+    sailing = Sailing.new(
+      "origin_port" => 'CNSHA',
+      "destination_port" => 'NLRTM',
+      "departure_date" => '2022-01-01',
+      "arrival_date" => '2022-01-15',
+      "sailing_code" => 'ABCD'
+    )
+    assert_equal 14, sailing.duration
+  end
 end

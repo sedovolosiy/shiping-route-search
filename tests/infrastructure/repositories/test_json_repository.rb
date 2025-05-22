@@ -39,9 +39,30 @@ class JsonRepositoryTest < Minitest::Test
   end
 
   def test_missing_keys
-    File.write(@json_path, JSON.dump({}))
-    error = assert_raises(RuntimeError) { JsonRepository.new(@json_path) }
-    assert_match(/Missing key:/, error.message)
+    File.write(@json_path, JSON.dump({})) # data becomes {}
+    # Previous behavior expected an error.
+    # Now, JsonRepository should initialize with empty collections.
+    repo = JsonRepository.new(@json_path)
+    assert_empty repo.sailings, "Sailings should be empty for an empty JSON object"
+    assert_empty repo.rates, "Rates should be empty for an empty JSON object"
+    assert_kind_of ExchangeRates, repo.exchange_rates, "Exchange_rates should be an ExchangeRates object"
+    assert_empty repo.exchange_rates.instance_variable_get(:@rates_by_date), "Exchange_rates internal data should be empty"
+  end
+
+  def test_empty_json_file
+    File.write(@json_path, '') # Empty file
+    repo = JsonRepository.new(@json_path)
+    assert_empty repo.sailings, "Sailings should be empty for an empty JSON file"
+    assert_empty repo.rates, "Rates should be empty for an empty JSON file"
+    assert_kind_of ExchangeRates, repo.exchange_rates, "Exchange_rates should be an ExchangeRates object for an empty file"
+    assert_empty repo.exchange_rates.instance_variable_get(:@rates_by_date), "Exchange_rates internal data should be empty for an empty file"
+
+    File.write(@json_path, '   ') # File with only whitespace
+    repo_whitespace = JsonRepository.new(@json_path)
+    assert_empty repo_whitespace.sailings, "Sailings should be empty for a whitespace-only JSON file"
+    assert_empty repo_whitespace.rates, "Rates should be empty for a whitespace-only JSON file"
+    assert_kind_of ExchangeRates, repo_whitespace.exchange_rates, "Exchange_rates should be an ExchangeRates object for a whitespace-only file"
+    assert_empty repo_whitespace.exchange_rates.instance_variable_get(:@rates_by_date), "Exchange_rates internal data should be empty for a whitespace-only file"
   end
 
   def test_invalid_sailings_type

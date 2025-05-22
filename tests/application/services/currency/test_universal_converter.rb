@@ -95,19 +95,47 @@ class UniversalConverterTest < Minitest::Test
     assert_in_delta 12345.00, converter.convert(10000, 'EUR', 'USD', '2022-01-01'), 0.01
   end
 
-  def test_base_to_missing_rate_currency
-    # Create an ExchangeRates that returns a nil rate instead of raising an error
-    exchange_rates = Class.new do
-      def rate(date, currency)
-        nil  # Return nil instead of raising an error
-      end
-    end.new
-    
-    converter = UniversalConverter.new(exchange_rates, 'EUR')
-    
+  def test_convert_base_to_other_missing_rate
+    error = assert_raises(RuntimeError) do
+      @converter.convert(100, 'EUR', 'XYZ', '2022-01-01') # XYZ rate does not exist
+    end
+    assert_equal "No rate for XYZ on 2022-01-01", error.message
+  end
+
+  def test_convert_other_to_base_missing_rate
+    error = assert_raises(RuntimeError) do
+      @converter.convert(100, 'XYZ', 'EUR', '2022-01-01') # XYZ rate does not exist
+    end
+    assert_equal "No rate for XYZ on 2022-01-01", error.message
+  end
+
+  def test_convert_base_to_other_when_exchange_rates_returns_nil
+    # Create a mock ExchangeRates that returns nil for a specific currency
+    mock_exchange_rates = Minitest::Mock.new
+    # Expect rate to be called for 'CAD' on '2022-01-01' and return nil
+    mock_exchange_rates.expect(:rate, nil, ['2022-01-01', 'cad'])
+
+    converter = UniversalConverter.new(mock_exchange_rates, 'EUR')
+
     error = assert_raises(RuntimeError) do
       converter.convert(100, 'EUR', 'CAD', '2022-01-01')
     end
-    assert_equal 'No rate for CAD on 2022-01-01', error.message
+    assert_equal "Exchange rate not found for CAD on 2022-01-01", error.message
+    mock_exchange_rates.verify
+  end
+
+  def test_convert_other_to_base_when_exchange_rates_returns_nil
+    # Create a mock ExchangeRates that returns nil for a specific currency
+    mock_exchange_rates = Minitest::Mock.new
+    # Expect rate to be called for 'CAD' on '2022-01-01' and return nil
+    mock_exchange_rates.expect(:rate, nil, ['2022-01-01', 'cad'])
+
+    converter = UniversalConverter.new(mock_exchange_rates, 'EUR')
+
+    error = assert_raises(RuntimeError) do
+      converter.convert(100, 'CAD', 'EUR', '2022-01-01')
+    end
+    assert_equal "Exchange rate not found for CAD on 2022-01-01", error.message
+    mock_exchange_rates.verify
   end
 end

@@ -8,4 +8,8 @@ class Sailing
     @arrival_date = attrs["arrival_date"]
     @sailing_code = attrs["sailing_code"]
   end
+
+  def duration
+    (Date.parse(arrival_date) - Date.parse(departure_date)).to_i
+  end
 end

@@ -1,43 +1,27 @@
 require_relative '../../../domain/contracts/route_search_strategy'
+require_relative './graph_traversal'
 
 class CheapestRouteSearch < RouteSearchStrategy
-  def find_routes(sailings, origin, destination, rates_map, converter, target_currency, max_legs: 4)
-    by_origin = sailings.group_by(&:origin_port)
-    result = []
-    queue = [[origin, []]]
+  include GraphTraversal
 
-    until queue.empty?
-      current_port, path = queue.shift
-      break if path.size >= max_legs
-      by_origin[current_port]&.each do |sailing|
-        next if path.any? { |s| s.sailing_code == sailing.sailing_code }
-        new_path = path + [sailing]
-        if sailing.destination_port == destination
-          result << new_path
-        else
-          queue << [sailing.destination_port, new_path]
-        end
-      end
-    end
+  def find_routes(sailings, origin, destination, options = {})
+    rates_map = options[:rates_map]
+    converter = options[:converter]
+    target_currency = options[:target_currency]
+    max_legs = options.fetch(:max_legs, 4)
 
-    min_cost = nil
-    cheapest_routes = []
-    result.each do |route_sailings|
-      total = route_sailings.sum do |sailing|
+    all_paths = find_all_paths(sailings, origin, destination, max_legs)
+
+    # Use the new helper method from the base class
+    select_best_routes(all_paths) do |route_sailings|
+      route_sailings.sum do |sailing|
         rate = rates_map[sailing.sailing_code]
         unless rate
+          # Restore raising an error as expected by the test
           raise "No rate found for sailing_code: #{sailing.sailing_code.inspect} in route #{route_sailings.map(&:sailing_code).inspect}"
         end
         converter.convert(rate.amount, rate.currency, target_currency, sailing.departure_date)
       end
-      if min_cost.nil? || total < min_cost
-        min_cost = total
-        cheapest_routes = [route_sailings]
-      elsif total == min_cost
-        cheapest_routes << route_sailings
-      end
     end
-
-    cheapest_routes
   end
 end
