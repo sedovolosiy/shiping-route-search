@@ -1,6 +1,8 @@
 # application/boot.rb
 require 'json'
 require 'date'
+require 'pry'
+require 'pry-byebug'
 
 # Models
 require_relative '../domain/models/sailing'
