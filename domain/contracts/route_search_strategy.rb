@@ -7,6 +7,14 @@ class RouteSearchStrategy
 
   # Helper method to select the best routes based on a calculated value (e.g., cost, duration)
   # It takes all possible paths and a block to calculate the value for each path.
+  #
+  # @param all_paths [Array<Array<Sailing>>] A list of all possible paths, where each path is an array of Sailing objects.
+  # @param value_calculator [Proc] A block that accepts a single path (an array of Sailing objects)
+  #   and returns a numeric value (e.g., cost, duration) for that path.
+  #   If the block returns nil for a path, that path is ignored.
+  # @return [Array<Array<Sailing>>] An array containing the best path(s) based on the minimum value
+  #   calculated by the block. Returns an empty array if all_paths is empty or if all paths
+  #   result in a nil value from the value_calculator.
   def select_best_routes(all_paths, &value_calculator)
     return [] if all_paths.nil? || all_paths.empty?
 

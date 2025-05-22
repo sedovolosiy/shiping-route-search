@@ -28,6 +28,7 @@ class RouteFinder
                  when 'cheapest-direct', 'fastest', 'cheapest'
                    strategy.find_routes(@repo.sailings, origin, destination, options)
                  else
+                   STDERR.puts "WARN: Unknown criteria '#{criteria}' received. Returning empty results."
                    [] # Handle unknown criteria or unsupported strategy
                  end
 
