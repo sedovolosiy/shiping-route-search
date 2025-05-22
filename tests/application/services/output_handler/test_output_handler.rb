@@ -28,10 +28,24 @@ class OutputHandlerTest < Minitest::Test
     end
   end
 
-  def test_unsupported_format
+  def test_unsupported_format_xml
     assert_raises(RuntimeError) do
       OutputHandler.serialize_and_print([], {}, 'xml')
     end
+  end
+  
+  def test_unsupported_format_csv
+    error = assert_raises(RuntimeError) do
+      OutputHandler.serialize_and_print([], {}, 'csv')
+    end
+    assert_equal 'CSV output not implemented yet', error.message
+  end
+  
+  def test_unknown_format
+    error = assert_raises(RuntimeError) do
+      OutputHandler.serialize_and_print([], {}, 'unknown_format')
+    end
+    assert_equal 'Unknown output format: unknown_format', error.message
   end
 
   def teardown
