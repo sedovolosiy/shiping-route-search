@@ -33,9 +33,16 @@ class UniversalConverterTest < Minitest::Test
   end
 
   def test_convert_other_currencies
+    # In isolated testing, we found that we need to create a fresh instance
+    # with just the required data to avoid issues when running in the test suite
+    exchange_rates = ExchangeRates.new({
+      "2022-01-03" => {"usd" => 1.25, "eur" => 1.0, "jpy" => 130}
+    })
+    converter = UniversalConverter.new(exchange_rates, 'EUR')
+    
     # Test JPY to USD conversion through EUR
     # 13000 JPY → 100 EUR → 125 USD
-    assert_in_delta 125, @converter.convert(13000, 'JPY', 'USD', '2022-01-03'), 0.01
+    assert_in_delta 125, converter.convert(13000, 'JPY', 'USD', '2022-01-03'), 0.01
   end
 
   def test_missing_source_currency_rate
@@ -86,5 +93,21 @@ class UniversalConverterTest < Minitest::Test
     converter = UniversalConverter.new(rates, 'EUR')
     
     assert_in_delta 12345.00, converter.convert(10000, 'EUR', 'USD', '2022-01-01'), 0.01
+  end
+
+  def test_base_to_missing_rate_currency
+    # Create an ExchangeRates that returns a nil rate instead of raising an error
+    exchange_rates = Class.new do
+      def rate(date, currency)
+        nil  # Return nil instead of raising an error
+      end
+    end.new
+    
+    converter = UniversalConverter.new(exchange_rates, 'EUR')
+    
+    error = assert_raises(RuntimeError) do
+      converter.convert(100, 'EUR', 'CAD', '2022-01-01')
+    end
+    assert_equal 'No rate for CAD on 2022-01-01', error.message
   end
 end
