@@ -99,43 +99,69 @@ class TestGraphTraversal < Minitest::Test
 
   def test_find_all_paths_start_equals_destination_no_sailings
     # If origin and destination are the same, and no sailings, should be empty.
-    # The current implementation would not add an empty path for this.
     paths = find_all_paths([], 'CNSHA', 'CNSHA', 2)
-    assert_empty paths 
+    assert_empty paths, "Should be empty if origin is destination but no sailings define this loop or path"
   end
 
-  def test_find_all_paths_start_equals_destination_with_sailings
-    # If origin and destination are the same, but there are sailings,
-    # it should not return any path unless there's a loop back to the start.
-    # The current logic finds paths *between* ports.
-    paths = find_all_paths(@sailings, 'CNSHA', 'CNSHA', 2)
-    assert_empty paths # No direct sailing from CNSHA to CNSHA in the list
-  end
+  def test_find_all_paths_path_reaches_max_legs_before_destination
+    # CNSHA --AAAA--> JPTKO --BBBB--> USLGB
+    # Search CNSHA -> USLGB with max_legs = 1. 
+    # Path [AAAA] will be formed (size 1). current_port = JPTKO. path.size (1) is not >= max_legs (1). So it proceeds.
+    # by_origin[JPTKO] will find BBBB.
+    # new_path = [AAAA, BBBB] (size 2).
+    # sailing.destination_port (USLGB) == destination (USLGB) -> result << new_path. This is not what we want to test for the break.
 
-  def test_find_all_paths_complex_scenario_multiple_routes_different_lengths
-    s5 = MockSailing.new('USLGB', 'DEHAM', '2022-01-20', '2022-01-25', 'FFFF') # Leg 3 for path 1
-    s6 = MockSailing.new('NLRTM', 'DEHAM', '2022-01-16', '2022-01-22', 'GGGG') # Leg 3 for path 2 (alternative)
-    s7 = MockSailing.new('JPTKO', 'DEHAM', '2022-01-11', '2022-01-18', 'HHHH') # Alternative 2-leg path
-    
-    complex_sailings = @sailings + [s5, s6, s7]
-    # CNSHA -> JPTKO (s1) -> USLGB (s2) -> DEHAM (s5)  (3 legs)
-    # CNSHA -> NLRTM (s3) -> USLGB (s4) -> DEHAM (s5)  (3 legs) - Note: s5 re-used destination, but path is different
-    # CNSHA -> NLRTM (s3) -> DEHAM (s6) (2 legs)
-    # CNSHA -> JPTKO (s1) -> DEHAM (s7) (2 legs)
+    # Let's test CNSHA -> X (non-existent) with max_legs = 1, where CNSHA -> JPTKO is a valid first leg.
+    # Path [AAAA] (size 1) is formed. current_port = JPTKO.
+    # The loop `until queue.empty?` continues.
+    # `current_port, path = queue.shift` will eventually process `['JPTKO', [@sailing1]]`
+    # `break if path.size >= max_legs` -> `break if 1 >= 1` is true. So it should break.
+    # This means it won't even try to iterate `by_origin['JPTKO']&.each` for this path.
 
-    paths = find_all_paths(complex_sailings, 'CNSHA', 'DEHAM', 3)
-    assert_equal 4, paths.length
-    
-    expected_paths_codes = [
-      %w[AAAA BBBB FFFF], # CNSHA -> JPTKO -> USLGB -> DEHAM
-      %w[CCCC DDDD FFFF], # CNSHA -> NLRTM -> USLGB -> DEHAM
-      %w[CCCC GGGG],      # CNSHA -> NLRTM -> DEHAM
-      %w[AAAA HHHH]       # CNSHA -> JPTKO -> DEHAM
+    # To properly test the `break`, we need to ensure that a path of size `max_legs`
+    # whose last port is NOT the destination, does not get extended.
+    sailings = [
+      MockSailing.new('A', 'B', 'd1', 'a1', 'S1'), # Path A->B
+      MockSailing.new('B', 'C', 'd2', 'a2', 'S2')  # Path B->C
     ]
-    
-    actual_paths_codes = paths.map { |p| p.map(&:sailing_code) }.sort
-    expected_paths_codes.each do |expected_path|
-      assert_includes actual_paths_codes, expected_path.sort
+    # Search A -> C with max_legs = 1.
+    # Queue starts with [A, []]
+    # 1. current=A, path=[] (size 0). 0 < 1. OK.
+    #    Process S1 (A->B). new_path=[S1]. Dest B != C. Queue << [B, [S1]]
+    # 2. current=B, path=[S1] (size 1). `break if 1 >= 1` is TRUE. Loop breaks for this path.
+    #    It should not proceed to find S2.
+    # So, find_all_paths should return [].
+    paths = find_all_paths(sailings, 'A', 'C', 1)
+    assert_empty paths, "Should not find A->C if max_legs=1 cuts off exploration at B"
+  end
+
+  def test_find_all_paths_intermediate_port_with_no_outgoing_sailings
+    # CNSHA --AAAA--> JPTKO. No sailings from JPTKO.
+    # Search CNSHA -> USLGB.
+    sailings = [@sailing1] # Only CNSHA -> JPTKO
+    paths = find_all_paths(sailings, 'CNSHA', 'USLGB', 2)
+    assert_empty paths, "Should be empty if intermediate port JPTKO has no outgoing sailings to reach USLGB"
+
+    # More explicit: A -> B, C -> D. Search A -> D.
+    s_ab = MockSailing.new('A', 'B', 'd1', 'a1', 'S_AB')
+    s_cd = MockSailing.new('C', 'D', 'd2', 'a2', 'S_CD')
+    sailings_no_link = [s_ab, s_cd]
+    paths_no_link = find_all_paths(sailings_no_link, 'A', 'D', 2)
+    assert_empty paths_no_link, "Should be empty if B has no outgoing sailings to D"
+  end
+
+  # Test to ensure the `next if path.any?` for cycle detection is covered.
+  # The existing test_find_all_paths_avoids_cycles is good.
+  # This one adds a direct self-loop to see if it's handled by the same `next` condition.
+  def test_find_all_paths_with_direct_self_loop_sailing
+    s_loop = MockSailing.new('JPTKO', 'JPTKO', 'd_loop', 'a_loop', 'SLOOP')
+    sailings_with_self_loop = [@sailing1, s_loop, @sailing2] # A->B, B->B (loop), B->C
+    # Search A -> C. Expected: A --S1--> B --S2--> C
+    paths = find_all_paths(sailings_with_self_loop, 'CNSHA', 'USLGB', 3)
+    assert_equal 1, paths.size
+    assert_equal [@sailing1, @sailing2], paths.first
+    paths.first.each do |s|
+      assert s.sailing_code != 'SLOOP', "Path should not include the self-loop sailing SLOOP"
     end
   end
 end

@@ -9,20 +9,17 @@ class FastestRouteSearch < RouteSearchStrategy
     max_legs = options.fetch(:max_legs, 4)
     all_paths = find_all_paths(sailings, origin, destination, max_legs)
 
-    min_duration = nil
-    fastest_routes = []
-    all_paths.each do |route_sailings|
-      start_date = Date.parse(route_sailings.first.departure_date)
-      end_date = Date.parse(route_sailings.last.arrival_date)
-      duration = (end_date - start_date).to_i
-      if min_duration.nil? || duration < min_duration
-        min_duration = duration
-        fastest_routes = [route_sailings]
-      elsif duration == min_duration
-        fastest_routes << route_sailings
+    # Use the new helper method from the base class
+    select_best_routes(all_paths) do |route_sailings|
+      # Ensure route_sailings is not empty before trying to access first/last
+      return nil if route_sailings.empty?
+      begin
+        start_date = Date.parse(route_sailings.first.departure_date)
+        end_date = Date.parse(route_sailings.last.arrival_date)
+        (end_date - start_date).to_i
+      rescue ArgumentError, TypeError # Catch errors if dates are nil or invalid
+        nil # Path cannot be timed
       end
     end
-
-    fastest_routes
   end
 end
