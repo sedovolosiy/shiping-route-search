@@ -7,7 +7,6 @@ class UniversalConverter < CurrencyConverter
   end
 
   def convert(amount, from_currency, to_currency, date)
-    from_currency_upper = from_currency.upcase
     from_currency = from_currency.downcase
     to_currency = to_currency.downcase
     
@@ -20,7 +19,6 @@ class UniversalConverter < CurrencyConverter
     elsif to_currency == @base_currency
       # from → base
       rate = @exchange_rates.rate(date, from_currency)
-      raise "No rate for #{from_currency_upper} on #{date}" unless rate
       (amount / rate).round(2)
     else
       # from → base → to
