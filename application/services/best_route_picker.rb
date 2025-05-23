@@ -21,12 +21,6 @@ class BestRoutePicker
       end
       best_routes
     when 'cheapest'
-      # This assumes the strategy already returns routes sorted or filtered by cheapness.
-      # If the strategy returns multiple equally cheap routes, this will now return all of them.
-      # If the strategy returns one best path (as it seems to do from CheapestRouteSearch),
-      # then this logic needs to be aligned with how CheapestRouteSearch provides its results.
-      # For now, let's assume `routes` contains pre-filtered cheapest candidates.
-      # We need to find the minimum cost among these candidates and return all that match.
       return [] if routes.first.nil? # handles if strategy returns [nil]
 
       costs = routes.map { |sailings| calculate_total_cost(sailings) }

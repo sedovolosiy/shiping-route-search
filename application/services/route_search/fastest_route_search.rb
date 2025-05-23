@@ -6,7 +6,9 @@ class FastestRouteSearch < RouteSearchStrategy
   include GraphTraversal
 
   def find_routes(sailings, origin, destination, options = {})
-    max_legs = options.fetch(:max_legs, 4)
+    # Get max_legs from options, or environment variable, or default to 4
+    default_max_legs = ENV['MAX_LEGS'] ? ENV['MAX_LEGS'].to_i : 4
+    max_legs = options.fetch(:max_legs, default_max_legs)
     all_paths = find_all_paths(sailings, origin, destination, max_legs)
 
     # Use the new helper method from the base class

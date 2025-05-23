@@ -8,7 +8,9 @@ class CheapestRouteSearch < RouteSearchStrategy
     rates_map = options[:rates_map]
     converter = options[:converter]
     target_currency = options[:target_currency]
-    max_legs = options.fetch(:max_legs, 6)
+    # Get max_legs from options, or environment variable, or default to 4
+    default_max_legs = ENV['MAX_LEGS'] ? ENV['MAX_LEGS'].to_i : 4
+    max_legs = options.fetch(:max_legs, default_max_legs)
 
     all_paths = find_all_paths(sailings, origin, destination, max_legs)
 
