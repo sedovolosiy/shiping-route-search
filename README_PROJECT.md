@@ -79,6 +79,11 @@ The coverage report will be generated in the `coverage/` directory and will auto
 docker build -t route-finder .
 docker run -it --rm -v "$PWD/data.json:/app/data.json" route-finder
 ```
+#### 5.1 Run tests with Docker
+
+```bash
+docker run --rm -it route-finder bundle exec rake test
+```
 
 ### 6. Run with Docker and Provide Input Parameters
 
