@@ -22,13 +22,23 @@ class FastestRouteSearchTest < Minitest::Test
   def test_multiple_fastest_routes
     sailings = [
       Sailing.new({"origin_port"=>"A", "destination_port"=>"D", "departure_date"=>"2022-01-01", "arrival_date"=>"2022-01-03", "sailing_code"=>"S1"}),
-      Sailing.new({"origin_port"=>"D", "destination_port"=>"B", "departure_date"=>"2022-01-02", "arrival_date"=>"2022-01-05", "sailing_code"=>"S2"})
+      Sailing.new({"origin_port"=>"D", "destination_port"=>"B", "departure_date"=>"2022-01-03", "arrival_date"=>"2022-01-05", "sailing_code"=>"S2"})
     ]
     routes = @strategy.find_routes(sailings, "A", "B", max_legs: 4)
+
     assert_equal 1, routes.size
     codes = routes.map { |r| r.map(&:sailing_code) }
     assert_equal [["S1", "S2"]], codes
   end
+
+    def test_no_fastest_route_when_arrival_and_departure_dates_do_not_match
+      sailings = [
+        Sailing.new({"origin_port"=>"A", "destination_port"=>"D", "departure_date"=>"2022-01-01", "arrival_date"=>"2022-01-03", "sailing_code"=>"S1"}),
+        Sailing.new({"origin_port"=>"D", "destination_port"=>"B", "departure_date"=>"2022-01-02", "arrival_date"=>"2022-01-05", "sailing_code"=>"S2"}) # departure_date does not match previous arrival_date
+      ]
+      routes = @strategy.find_routes(sailings, "A", "B", max_legs: 4)
+      assert_equal 0, routes.size
+    end
 
   def test_fastest_route_with_multiple_legs_and_multiple_results
     sailings = [

@@ -6,7 +6,22 @@ class JsonResultSerializer < OutputSerializer
     # If routes is empty or contains only nil/empty routes, return an empty JSON array
     return JSON.pretty_generate([]) if routes.nil? || routes.empty?
 
-    serialized_routes_data = routes.map do |single_route_sailings|
+    # Handle environment variable to determine single vs multiple route output
+    return_multiple_routes = ENV['RETURN_MULTIPLE_ROUTES']&.downcase == 'true'
+
+    # Normalize input: ensure we always work with an array of routes
+    normalized_routes = if routes.is_a?(Array) && routes.first.is_a?(Array)
+      # routes is already an array of routes (each route is an array of Sailing objects)
+      routes
+    elsif routes.is_a?(Array) && (routes.empty? || routes.first.respond_to?(:sailing_code))
+      # routes is a single route (array of Sailing objects)
+      [routes]
+    else
+      # Fallback: treat as array of routes
+      routes
+    end
+
+    serialized_routes_data = normalized_routes.map do |single_route_sailings|
       # single_route_sailings is an array of Sailing objects for one route
       # If a route is nil or empty, represent it as an empty array in JSON.
       if single_route_sailings.nil? || single_route_sailings.empty?
@@ -32,6 +47,15 @@ class JsonResultSerializer < OutputSerializer
         end
       end
     end
-    JSON.pretty_generate(serialized_routes_data)
+
+    # Return single route or multiple routes based on environment variable
+    result = if return_multiple_routes
+      serialized_routes_data
+    else
+      # Return only the first route, or empty array if no routes
+      serialized_routes_data.empty? ? [] : serialized_routes_data.first
+    end
+
+    JSON.pretty_generate(result)
   end
 end

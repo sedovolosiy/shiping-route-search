@@ -10,7 +10,8 @@ class BestRoutePickerTest < Minitest::Test
   def setup
     @rates_map = {
       'VALID1' => Rate.new({'sailing_code' => 'VALID1', 'rate' => '100', 'rate_currency' => 'USD'}),
-      'VALID2' => Rate.new({'sailing_code' => 'VALID2', 'rate' => '200', 'rate_currency' => 'EUR'})
+      'VALID2' => Rate.new({'sailing_code' => 'VALID2', 'rate' => '200', 'rate_currency' => 'EUR'}),
+      'VALID3' => Rate.new({'sailing_code' => 'VALID3', 'rate' => '100', 'rate_currency' => 'USD'})
     }
     @converter_mock = Minitest::Mock.new
     @base_currency = 'EUR'
@@ -82,7 +83,7 @@ class BestRoutePickerTest < Minitest::Test
   # Test for 'cheapest' when strategy returns multiple, picker should take first
   def test_pick_cheapest_takes_first_if_multiple_from_strategy
     s1 = MockSailingBRP.new('A', 'B', '2023-01-01', '2023-01-02', 'VALID1') # Cost 100
-    s2 = MockSailingBRP.new('C', 'D', '2023-01-03', '2023-01-04', 'VALID2') # Cost 200
+    s2 = MockSailingBRP.new('A', 'B', '2023-01-03', '2023-01-04', 'VALID2') # Cost 200
     
     # Setup converter mock for this specific test path
     # Need to re-initialize or clear existing expectations if @converter_mock is shared and has global setup
@@ -90,7 +91,8 @@ class BestRoutePickerTest < Minitest::Test
     @picker = BestRoutePicker.new(@rates_map, @converter_mock, @base_currency) # Re-initialize picker with new mock
 
     routes = [[s1], [s2]] 
-    
+    @converter_mock.expect(:convert, 100.0, [100.0, 'USD', 'EUR', '2023-01-01'])
+    @converter_mock.expect(:convert, 200.0, [200.0, 'EUR', 'EUR', '2023-01-03'])
     result = @picker.pick(routes, 'cheapest')
     assert_equal [[s1]], result
     @converter_mock.verify # Verify this specific expectation
@@ -102,11 +104,8 @@ class BestRoutePickerTest < Minitest::Test
 
     @converter_mock = Minitest::Mock.new # Re-initialize for this test
     @picker = BestRoutePicker.new(@rates_map, @converter_mock, @base_currency) # Re-initialize picker with new mock
-
-    @converter_mock.expect(:convert, 100.0, [100.0, 'USD', 'EUR', '2023-01-01']) # For s_cheap in min_by
-    @converter_mock.expect(:convert, 200.0, [200.0, 'EUR', 'EUR', '2023-01-03']) # For s_expensive in min_by
-    @converter_mock.expect(:convert, 100.0, [100.0, 'USD', 'EUR', '2023-01-01']) # For s_cheap in the explicit check after min_by
-
+    @converter_mock.expect(:convert, 100.0, [100.0, 'USD', 'EUR', '2023-01-01']) # Call for s_cheap
+    @converter_mock.expect(:convert, 200.0, [200.0, 'EUR', 'EUR', '2023-01-03']) # Call for s_expensive
     routes = [[s_cheap], [s_expensive]]
     result = @picker.pick(routes, 'cheapest-direct')
     assert_equal [[s_cheap]], result

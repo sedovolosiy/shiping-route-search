@@ -1,7 +1,7 @@
 require_relative 'boot'
 
 input = InputHandler.parse
-repo = JsonRepository.new('data.json')
+repo = JsonRepository.new('debug_data.json')
 base_currency = 'EUR'
 converter = UniversalConverter.new(repo.exchange_rates, base_currency)
 strategy = RouteSearchStrategyFactory.build(input[:criteria])

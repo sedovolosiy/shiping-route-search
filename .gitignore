@@ -36,7 +36,7 @@ Thumbs.db
 
 # Ignore dotenv files
 .env
-.env.*
+
 
 # Ignore gemspec lock
 *.gemlock

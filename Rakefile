@@ -1,7 +1,8 @@
 require 'rake/testtask'
+require 'dotenv/load' # Load environment variables from .env file
 
 Rake::TestTask.new(:test) do |t|
-  ENV['COVERAGE'] = 'true'
+  # ENV['COVERAGE'] is now loaded from .env file
   t.libs << '.'
   t.warning = false
   t.verbose = true
