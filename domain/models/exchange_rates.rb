@@ -3,7 +3,12 @@ class ExchangeRates
     # Convert all date strings to consistent format
     @rates_by_date = {}
     rates_by_date.each do |date, rates|
-      @rates_by_date[date.to_s] = rates
+      # Normalize currency keys to be case-insensitive
+      normalized_rates = {}
+      rates.each do |currency, rate|
+        normalized_rates[currency.to_s.downcase] = rate
+      end
+      @rates_by_date[date.to_s] = normalized_rates
     end
   end
 
