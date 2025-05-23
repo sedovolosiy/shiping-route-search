@@ -8,7 +8,7 @@ class CheapestRouteSearch < RouteSearchStrategy
     rates_map = options[:rates_map]
     converter = options[:converter]
     target_currency = options[:target_currency]
-    max_legs = options.fetch(:max_legs, 4)
+    max_legs = options.fetch(:max_legs, 6)
 
     all_paths = find_all_paths(sailings, origin, destination, max_legs)
 

@@ -12,21 +12,38 @@ class BestRoutePicker
 
     case criteria
     when 'cheapest-direct'
-      best_route = routes.min_by do |sailings|
-        calculate_total_cost(sailings)
+      # Calculate costs for all routes
+      costs = routes.map { |sailings| calculate_total_cost(sailings) }
+      min_cost = costs.min
+      # Filter routes that have the minimum cost
+      best_routes = routes.select.with_index do |_, index|
+        costs[index] == min_cost && costs[index] != Float::INFINITY
       end
-      # Ensure the best_route found is actually valid (not infinite cost)
-      return [] if best_route.nil? || calculate_total_cost(best_route) == Float::INFINITY
-      [best_route]
+      best_routes
     when 'cheapest'
-      [routes.first] # Or, if strategy returns multiple equally cheap, apply more logic here.
-    when 'fastest'
-      best_route = routes.min_by do |sailings|
-        calculate_duration(sailings)
+      # This assumes the strategy already returns routes sorted or filtered by cheapness.
+      # If the strategy returns multiple equally cheap routes, this will now return all of them.
+      # If the strategy returns one best path (as it seems to do from CheapestRouteSearch),
+      # then this logic needs to be aligned with how CheapestRouteSearch provides its results.
+      # For now, let's assume `routes` contains pre-filtered cheapest candidates.
+      # We need to find the minimum cost among these candidates and return all that match.
+      return [] if routes.first.nil? # handles if strategy returns [nil]
+
+      costs = routes.map { |sailings| calculate_total_cost(sailings) }
+      min_cost = costs.min
+      best_routes = routes.select.with_index do |_, index|
+        costs[index] == min_cost && costs[index] != Float::INFINITY
       end
-      # Ensure the best_route found is actually valid (not infinite duration)
-      return [] if best_route.nil? || calculate_duration(best_route) == Float::INFINITY
-      [best_route]
+      best_routes
+    when 'fastest'
+      # Calculate durations for all routes
+      durations = routes.map { |sailings| calculate_duration(sailings) }
+      min_duration = durations.min
+      # Filter routes that have the minimum duration
+      best_routes = routes.select.with_index do |_, index|
+        durations[index] == min_duration && durations[index] != Float::INFINITY
+      end
+      best_routes
     else
       [] # Or handle unknown criteria as an error
     end

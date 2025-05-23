@@ -16,10 +16,13 @@ module GraphTraversal
       next if path.size >= max_legs
 
       by_origin[current_port]&.each do |sailing|
-        # Avoid visiting the same intermediate port twice.
-        # An intermediate port is any port visited that is not the final destination of the overall search.
-        visited_destinations_in_path = path.map(&:destination_port)
-        if sailing.destination_port != destination && visited_destinations_in_path.include?(sailing.destination_port)
+        # To prevent cycles, ensure the destination of the current sailing
+        # is not a node already visited in the current path (unless it's the final destination).
+        # Visited nodes include the initial origin of the search and all intermediate destinations
+        # from the current path being explored.
+        nodes_already_visited_in_current_path = [origin] + path.map(&:destination_port)
+
+        if sailing.destination_port != destination && nodes_already_visited_in_current_path.include?(sailing.destination_port)
           next
         end
 
