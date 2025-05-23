@@ -1,10 +1,13 @@
-FROM ruby:3.4.3-slim
+FROM ruby:3.4.3-alpine
 
 WORKDIR /app
 
 COPY Gemfile Gemfile.lock ./
-RUN gem install bundler && bundle install
+RUN apk add --no-cache build-base yaml-dev && \
+    gem install bundler && \
+    bundle install
 
 COPY . .
 
-CMD ["ruby", "application/main.rb"]
+RUN chmod +x bin/route_finder
+CMD ["./bin/route_finder"]
