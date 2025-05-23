@@ -1,4 +1,3 @@
-# application/boot.rb
 require 'json'
 require 'date'
 require 'pry'
