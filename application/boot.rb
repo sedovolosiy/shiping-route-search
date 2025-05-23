@@ -3,6 +3,7 @@ require 'json'
 require 'date'
 require 'pry'
 require 'pry-byebug'
+require 'dotenv/load'
 
 # Models
 require_relative '../domain/models/sailing'

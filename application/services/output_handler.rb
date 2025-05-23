@@ -14,10 +14,7 @@ class OutputHandler
       else
         raise "Unknown output format: #{output_format}"
       end
-    if routes.empty? || routes.first.nil?
-      puts serializer.serialize([], rates_map)
-    else
-      puts serializer.serialize(routes.first, rates_map)
-    end
+    
+    puts serializer.serialize(routes, rates_map)
   end
 end

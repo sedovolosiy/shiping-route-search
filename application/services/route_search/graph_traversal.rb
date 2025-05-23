@@ -16,11 +16,50 @@ module GraphTraversal
       next if path.size >= max_legs
 
       by_origin[current_port]&.each do |sailing|
-        # Avoid visiting the same intermediate port twice.
-        # An intermediate port is any port visited that is not the final destination of the overall search.
-        visited_destinations_in_path = path.map(&:destination_port)
-        if sailing.destination_port != destination && visited_destinations_in_path.include?(sailing.destination_port)
+        # Skip sailings with missing dates
+        if sailing.departure_date.nil? || sailing.arrival_date.nil?
+          next # Skip this sailing as dates are missing
+        end
+        
+        # Validate that arrival_date is not before departure_date for the current sailing
+        begin
+          if Date.parse(sailing.arrival_date) < Date.parse(sailing.departure_date)
+            next # Skip this sailing as its dates are inconsistent
+          end
+        rescue ArgumentError, TypeError
+          # Handle invalid date strings or type errors if necessary
+          next # Skip if dates are unparseable
+        end
+
+        # To prevent cycles, ensure the destination of the current sailing
+        # is not a node already visited in the current path (unless it's the final destination).
+        # Visited nodes include the initial origin of the search and all intermediate destinations
+        # from the current path being explored.
+        nodes_already_visited_in_current_path = [origin] + path.map(&:destination_port)
+
+        if sailing.destination_port != destination && nodes_already_visited_in_current_path.include?(sailing.destination_port)
           next
+        end
+
+        # Date consistency check:
+        # The departure date of the current sailing must be on or after the arrival date of the previous sailing in the path.
+        if path.any?
+          last_sailing_in_path = path.last
+          # We already checked sailing.departure_date for nil above
+          # but need to check the last_sailing_in_path.arrival_date
+          if last_sailing_in_path.arrival_date.nil?
+            next # Skip if the previous sailing's arrival date is missing
+          end
+          
+          begin
+            if Date.parse(sailing.departure_date) < Date.parse(last_sailing_in_path.arrival_date)
+              next # Skip this sailing as it departs before the previous one arrives
+            end
+          rescue ArgumentError, TypeError
+            # Handle invalid date strings or type errors if necessary, though ideally data is clean.
+            # For now, we'll skip if dates are unparseable, treating it as an invalid path.
+            next
+          end
         end
 
         new_path = path + [sailing]
