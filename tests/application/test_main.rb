@@ -14,7 +14,7 @@ class TestMain < Minitest::Test
     @original_env = ENV.to_h
     
     # Create empty debug_data.json file for testing
-    File.write('debug_data.json', '{"sailings":[],"rates":[],"exchange_rates":{}}')
+    File.write(ENV['DATA_FILE'], '{"sailings":[],"rates":[],"exchange_rates":{}}')
     
     # Mock InputHandler to prevent actual execution of main.rb logic
     @mock_input_handler = Minitest::Mock.new
@@ -81,6 +81,7 @@ class TestMain < Minitest::Test
     # Set environment variables
     ENV['INPUT_TYPE'] = 'stdin'
     ENV['OUTPUT_FORMAT'] = 'json'
+    ENV['DATA_FILE'] = 'debug_data.json'
   end
   
   def test_main_executes_without_error
@@ -92,6 +93,9 @@ class TestMain < Minitest::Test
   end
   
   def teardown
+    # Clean up the debug_data.json file before restoring ENV
+    FileUtils.rm_f(ENV['DATA_FILE'] || 'debug_data.json')
+    
     # Restore the original stdin, stdout, and ENV
     $stdin = @original_stdin
     $stdout = @original_stdout
@@ -104,9 +108,6 @@ class TestMain < Minitest::Test
     Object.send(:remove_const, :RouteSearchStrategyFactory) if Object.const_defined?(:RouteSearchStrategyFactory)
     Object.send(:remove_const, :RouteFinder) if Object.const_defined?(:RouteFinder)
     Object.send(:remove_const, :OutputHandler) if Object.const_defined?(:OutputHandler)
-    
-    # Clean up the debug_data.json file
-    FileUtils.rm_f('debug_data.json')
   end
 end
 
@@ -116,7 +117,7 @@ class TestMainApplicationIntegration < Minitest::Test
 
   # Path to the debug_data.json file which will be created for tests in the project root.
   # main.rb (JsonRepository.new('debug_data.json')) will look for it there when run from the root.
-  TEST_DATA_FILE_PATH = File.expand_path('../../debug_data.json', __dir__)
+  TEST_DATA_FILE_PATH = File.expand_path("../../#{ENV['DATA_FILE'] || 'debug_data.json'}", __dir__)
 
   def setup
     # Make sure there's no leftover data file before each test
@@ -145,6 +146,9 @@ class TestMainApplicationIntegration < Minitest::Test
     command = "ruby #{SCRIPT_PATH}"
     # Format data for STDIN
     stdin_data = inputs_array.join("\n") + "\n"
+
+    # Set DATA_FILE environment variable to use debug_data.json for tests
+    env_vars = env_vars.merge({ 'DATA_FILE' => ENV['DATA_FILE'] || 'debug_data.json' })
 
     # Run the script with environment variables and STDIN data
     # The first argument to Open3.capture3 is the environment variables hash
