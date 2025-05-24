@@ -1,91 +1,167 @@
-## Background
+# Shipping Route and Rate Search Service
 
-Shypple is a freight forwarder company. That means we help other companies to
-get their products from one place to another. We must deliver the goods as fast
-as possible. To achieve that, we need to replace some human labor with
-automation. We have part of the process being done via Excel and that is not
-good to scale.
+## Overview
 
-Have we told you we want to be the biggest freight forwarder company in the
-world?
+This service allows you to search for shipping routes between ports based on various criteria (cheapest, fastest, direct only, etc.), including currency conversion and route cost calculation.
 
-The good news is the team MapReduce (yeah, they choose this name) already
-created a service that aggregates lots of information and returns a JSON file
-for us. This MapReduce service returns all shipping options available in the
-database. We have given you a sample JSON response from MapReduce service.
+## How to Run
 
-Your job is to create a small service that does some calculations using the
-JSON file.
+### 1. Install Dependencies
 
-Exchange rates in the JSON file are based on EUR (For example 2022-01-29 usd
-rate 1.1138 is USD/EUR rate). We decide which exchange_rate will be used to
-calculate EUR sailing rate based on the *departure_date* of the sailing. Use
-sailing_code from sailing & rate to get the rate amount & currency.
-
-Your Product Owner created 3 tickets for you: 3rd task(TST-0003) is a nice to
-have feature. So it is a bonus task & you can finish it if you have time.
-
-The solution should include all configuration files needed to build and run in
-a Docker container (don't expect anything else but Docker to be installed).
-
-### Input/Output Specification
-1. The first line is the origin_port code
-2. The second line is the destination_port code
-3. The third line is the criteria (cheapest-direct, cheapest, fastest)
-5. The next lines you should print the result
-
-#### Input
-```json
-CNSHA
-NLRTM
-cheapest-direct
+```bash
+bundle install
 ```
 
-#### Output
-```json
-[
-  {
-    "origin_port": "CNSHA",
-    "destination_port": "NLRTM",
-    "departure_date": "2024-02-01",
-    "arrival_date": "2024-03-01",
-    "sailing_code": "XXXX",
-    "rate": "123.00",
-    "rate_currency": "USD"
-  }
-]
+### 2. Prepare Input Data
+
+The `data.json` file must contain the following keys:
+- `sailings` — array of sailings
+- `rates` — array of rates
+- `exchange_rates` — exchange rates by date
+
+See the structure example below.
+
+### 3. Run the Application
+
+You can start the program in two ways:
+
+```bash
+ruby application/main.rb
+```
+or
+```bash
+bin/route_finder
 ```
 
-#### (1) PLS-0001 - *Acceptance criteria*: Return the cheapest direct sailing between origin port & destination port in following format. For example using CNSHA as origin port & NLRTM as destination port input parameters
+### 4. Input Parameters
 
+By default, the application expects input from the keyboard (stdin):
+1. Origin port code (e.g. CNSHA)
+2. Destination port code (e.g. NLRTM)
+3. Search criteria (`cheapest`, `cheapest-direct`, `fastest`)
 
-```json
-CNSHA
-NLRTM
-cheapest-direct
-[
-  {
-    "origin_port": "CNSHA",
-    "destination_port": "NLRTM",
-    "departure_date": "2024-02-01",
-    "arrival_date": "2024-03-01",
-    "sailing_code": "XXXX",
-    "rate": "232.30",
-    "rate_currency": "USD"
-  }
-]
+Example:
 ```
-
-#### (2) WRT-0002 - *Acceptance criteria*: Return the cheapest sailing (direct or indirect). If the cheapest one contains more than one sailing (two sailings) in the following format, you should return all sailing legs (You need to compare the sum of all sailing legs to find the cheapest sailing option). Use same CNSHA as origin port & NLRTM as destination port input parameters
-
-#### Input
-```json
 CNSHA
 NLRTM
 cheapest
 ```
 
-#### Output
+### 5. Run Tests
+
+```bash
+rake test
+rake coverage
+```
+
+The coverage report will be generated in the `coverage/` directory and will open in your browser when using the `rake coverage` command.
+
+### 6. Run with Docker
+
+```bash
+docker build -t route-finder .
+docker run -it --rm -v "$PWD/data.json:/app/data.json" route-finder
+```
+
+#### Run tests in Docker
+
+```bash
+docker run --rm -it route-finder bundle exec rake test
+```
+
+#### Run with parameters via Docker
+
+```bash
+echo -e "CNSHA\nNLRTM\ncheapest" | docker run -i --rm -v "$PWD/data.json:/app/data.json" route-finder
+```
+
+---
+
+## Environment Variables
+
+The following environment variables control the application behavior:
+
+- `RETURN_MULTIPLE_ROUTES` — if `true`, the program outputs all routes matching the search criteria (e.g. all cheapest or fastest routes). If `false`, only one optimal route is shown.
+- `OUTPUT_FORMAT` — output format. Currently only `json` is supported, but this variable is reserved for future expansion.
+- `COVERAGE` — if `true`, enables code coverage collection with simplecov when running tests.
+- `INPUT_TYPE` — input method for search parameters. Default is `stdin` (keyboard input), but the variable is reserved for future expansion.
+- `MAX_LEGS` — maximum number of legs in an indirect route. Limits the search depth for complex routes.
+- `DATA_FILE` — name of the data file for searching routes and rates (default is `data.json`).
+
+Example usage:
+
+```bash
+RETURN_MULTIPLE_ROUTES=true OUTPUT_FORMAT=json MAX_LEGS=4 DATA_FILE=data.json ruby application/main.rb
+```
+
+Or with Docker:
+
+```bash
+docker run -e RETURN_MULTIPLE_ROUTES=true -e OUTPUT_FORMAT=json -e MAX_LEGS=4 -e DATA_FILE=data.json -it --rm -v "$PWD/data.json:/app/data.json" route-finder
+```
+
+---
+
+## Output Features
+
+- Output format is controlled by the `OUTPUT_FORMAT` variable (default: JSON).
+- If multiple routes fully match the criteria (e.g. several cheapest or fastest), and `RETURN_MULTIPLE_ROUTES=true`, the response will be an array of routes.
+- Each route (or route leg) is represented as a separate object with detailed information.
+
+### Example `data.json` structure
+
+```json
+{
+  "sailings": [
+    {
+      "sailing_code": "ERXQ",
+      "origin_port": "CNSHA",
+      "destination_port": "ESBCN",
+      "departure_date": "2022-01-29",
+      "arrival_date": "2022-02-06"
+    },
+    {
+      "sailing_code": "ETRG",
+      "origin_port": "ESBCN",
+      "destination_port": "NLRTM",
+      "departure_date": "2022-02-16",
+      "arrival_date": "2022-02-20"
+    }
+    // ... more sailings ...
+  ],
+  "rates": [
+    {
+      "sailing_code": "ERXQ",
+      "amount": "261.96",
+      "currency": "EUR"
+    },
+    {
+      "sailing_code": "ETRG",
+      "amount": "69.96",
+      "currency": "USD"
+    }
+    // ... more rates ...
+  ],
+  "exchange_rates": [
+    {
+      "date": "2022-01-29",
+      "usd": 1.1138,
+      "eur": 1.0
+    },
+    {
+      "date": "2022-02-16",
+      "usd": 1.1350,
+      "eur": 1.0
+    }
+    // ... more rates ...
+  ]
+}
+```
+
+### Example program output
+
+For the cheapest route (possibly with a transfer):
+
 ```json
 [
   {
@@ -109,82 +185,60 @@ cheapest
 ]
 ```
 
-#### (3) TST-0003 - *Acceptance criteria*: Return the fastest sailing legs (direct or indirect) in the same above format
-##### Definition of "fastest": the sailing leg(s) with the shortest total journey time between the origin and destination.
+For a direct route, the response will contain only one object.
 
-#### Input
-```json
+### Example output with RETURN_MULTIPLE_ROUTES=true
+
+If `RETURN_MULTIPLE_ROUTES` is set to `true`, the program may return several routes, each matching the selected criteria. In this case, the response is an array of routes, where each route is an array of legs:
+
+```
+RETURN_MULTIPLE_ROUTES=true OUTPUT_FORMAT=json MAX_LEGS=4 DATA_FILE=data.json ruby application/main.rb
 CNSHA
 NLRTM
-fastest
-```
-
-#### Output
-```json
+cheapest
 [
-  {
-    "origin_port": "CNSHA",
-    "destination_port": "ESBCN",
-    "departure_date": "2022-01-29",
-    "arrival_date": "2022-02-06",
-    "sailing_code": "ERXQ",
-    "rate": "261.96",
-    "rate_currency": "EUR"
-  },
-  {
-    "origin_port": "ESBCN",
-    "destination_port": "NLRTM",
-    "departure_date": "2022-02-16",
-    "arrival_date": "2022-02-20",
-    "sailing_code": "ETRG",
-    "rate": "69.96",
-    "rate_currency": "USD"
-  }
+  [
+    {
+      "origin_port": "CNSHA",
+      "destination_port": "ESBCN",
+      "departure_date": "2022-01-29",
+      "arrival_date": "2022-02-12",
+      "sailing_code": "ERXQ",
+      "rate": "261.96",
+      "rate_currency": "EUR"
+    },
+    {
+      "origin_port": "ESBCN",
+      "destination_port": "NLRTM",
+      "departure_date": "2022-02-16",
+      "arrival_date": "2022-02-20",
+      "sailing_code": "ETRG",
+      "rate": "69.96",
+      "rate_currency": "USD"
+    }
+  ]
 ]
 ```
 
-### Project Requirements
+Each nested array is a separate route consisting of one or more legs.
 
-1. Please, create one single branch for all the changes.
-2. Make sure your app run on docker and all the dependencies are included on it
-3. Please send a zip file with the solution to this email address, j.souza@shypple.com, once you're done.
-4. The solution must work with standard input and output (stdin and stdout).
-5. For indirect routes, the solution should handle more than two legs.
+---
 
-You should provide a solution that make possible to scale because new requirements will come soon.
+## Search Criteria
 
-4. SLD-0004 - coming soon
-5. DRY-0005 - coming soon
-6. TDD-0006 - coming soon
+- `cheapest-direct` — Cheapest direct sailing
+- `cheapest` — Cheapest route (may include transfers)
+- `fastest` — Fastest route (by total journey time)
 
-We will evaluate the solution with some criteria:
+---
 
-1. Object Oriented Concepts
-2. SOLID
-3. DRY
-4. Test Coverage
+## Key Components
 
-#### Lingo
+- **JsonRepository** — loads sailings, rates, and exchange rates from JSON
+- **RouteSearchStrategyFactory** — selects the search strategy by criteria
+- **RouteFinder** — finds routes using the selected strategy
+- **UniversalConverter** — converts currencies by date
+- **OutputHandler** — formats and prints the result
 
-CNSHA - Shanghai
-
-NLRTM - Rotterdam
-
-ESBCN - Barcelona
-
-BRSSZ - Santos
-
-Shipment Leg: A "shipment leg" refers to each segment of a shipment's journey
-between two specific locations, such as from one port to another. For example,
-if a shipment travels from Shanghai to Rotterdam with a stopover in Barcelona,
-the journey consists of two legs: Shanghai to Barcelona and Barcelona to
-Rotterdam.
-
-#### We are here to help
-
-Feel free to reach out to us with any questions or concerns you may have. We're
-here to help and are more than happy to provide any clarification needed.
-
-Good luck!
-
-:q!
+## Contacts
+Questions and suggestions: sedovolosiy@gmail.com
